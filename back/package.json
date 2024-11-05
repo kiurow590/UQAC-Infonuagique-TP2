@@ -1,0 +1,24 @@
+{
+  "name": "tp1-infonuagique",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node APIRest.js",
+    "dev": "LEVELDEBUG=debug nodemon APIRest.js"
+
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "firebase": "^10.13.2",
+    "firebase-admin": "^12.5.0",
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.2.2"
+  }
+}
