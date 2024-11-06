@@ -25,7 +25,7 @@ $ cd ./Exercice 1/back
 $ npm install
 ```
 
-Ensuite, il faut accéder à l'interface de Firebase et que vous demandiez les accès pour avoir l'autorisation de lire et écrire dans la base de données. Une fois que vous avez les accès, vous pouvez placer le fichier .json que Firebase vous a donné dans le dossier back. Ensuite, vous devez indiquer le fichier dans le fichier firebaseConfig.js. 
+Ensuite, il faut accéder à l'interface de Firebase et que vous demandiez les accès pour avoir l'autorisation de lire et écrire dans la base de données. Une fois que vous avez les accès, vous pouvez placer le fichier .json que Firebase vous a donné dans le dossier back. Ensuite, vous devez indiquer le fichier dans le fichier BDDConfig.js. 
 
 ```javascript
 //...

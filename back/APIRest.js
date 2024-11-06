@@ -1,12 +1,9 @@
-/**
- * IMPORTS
- */
-import express, {Router} from 'express';
-import cors from 'cors'
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from 'firebase/auth';
-import {logger} from "./logger.mjs";
-import {auth, database} from "./firebaseConfig.js";
-
+// APIRest.js
+import express from 'express';
+import cors from 'cors';
+import bcrypt from 'bcrypt';
+import { User, HealthData } from './BDDConfig.js';
+import { logger } from './logger.mjs';
 
 /**
  * CONSTANTES
@@ -14,8 +11,8 @@ import {auth, database} from "./firebaseConfig.js";
 const app = express();
 const corsOption = {
     credential: true,
-    orgin: ["http://localhost:8080/", "http://localhost:3000/"] // A changer en fonction de l'adresse IP de votre machine
-}
+    origin: ["http://localhost:8080/", "http://localhost:3000/"]
+};
 const port = 3000;
 
 /**
@@ -23,35 +20,29 @@ const port = 3000;
  */
 app.use(express.json(), cors(corsOption)); // pour parser les requêtes au format JSON
 
-
 /**
  * ROUTES DE L'API POUR CREER UN UTILISATEUR
  */
 app.post('/users/signup', async (req, res) => {
-    const {user, password, name} = req.body; // Récupérer les données de la requête
+    const { user, password, name } = req.body; // Récupérer les données de la requête
 
     if (!user || !password || !name) { // Vérifier que les données sont bien présentes
         return res.status(400).send('Missing user, password, or name');
     }
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, user, password); // Ajour de l'utilisateur dans la base de données Firebase
-        logger.debug('Utilisateur inscrit:', userCredential.user);
-        const userId = userCredential.user.uid; // Récupérer l'identifiant de l'utilisateur
-        const utilisateursRef = database.ref(`utilisateurs/${userId}`); // Référence à l'emplacement de l'utilisateur dans la base de données
-        await utilisateursRef.set({ // Ajouter l'utilisateur dans la base de données
-            nom: name
-        });
-        return res.status(200).json({message: "Sign Up succes", value: userCredential.user.uid}); // Retourner une réponse au client
+        const hashedPassword = await bcrypt.hash(password, 10); // Hacher le mot de passe
+        const newUser = await User.create({ email: user, password: hashedPassword, name }); // Créer un nouvel utilisateur
+        logger.debug('Utilisateur inscrit:', newUser);
+        return res.status(200).json({ message: "Sign Up success", value: newUser.id }); // Retourner une réponse au client
     } catch (error) {
-        if (error.code === 'auth/email-already-in-use') {
+        if (error.name === 'SequelizeUniqueConstraintError') {
             logger.error('Cet email est déjà utilisé:', error.message);
             return res.status(409).json('Cet email est déjà utilisé.');
         } else {
             logger.error('Erreur Serveur lors de l\'inscription:', error.message);
             return res.status(500).send('Erreur Serveur lors de l\'inscription');
         }
-
     }
 });
 
@@ -59,20 +50,23 @@ app.post('/users/signup', async (req, res) => {
  * ROUTES DE L'API POUR SE CONNECTER
  */
 app.post('/users/login', async (req, res) => {
-    const {user, password} = req.body; // Récupérer les données de la requête
+    const { user, password } = req.body; // Récupérer les données de la requête
 
     if (!user || !password) { // Vérifier que les données sont bien présentes
         return res.status(400).send('Missing user or password');
     }
 
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, user, password); // Connexion de l'utilisateur
-        logger.info('Utilisateur connecté:', userCredential.user); // Afficher un message dans la console
-        return res.status(200).json({message: "Authentification succes", value: userCredential.user.uid}); // ajouter le token
-
+        const existingUser = await User.findOne({ where: { email: user } }); // Trouver l'utilisateur par email
+        if (!existingUser || !await bcrypt.compare(password, existingUser.password)) { // Vérifier le mot de passe
+            logger.error('Erreur lors de la connexion: Utilisateur ou mot de passe incorrect');
+            return res.status(401).send('Erreur lors de la connexion');
+        }
+        logger.info('Utilisateur connecté:', existingUser);
+        return res.status(200).json({ message: "Authentification success", value: existingUser.id }); // Retourner une réponse au client
     } catch (error) {
         logger.error('Erreur lors de la connexion:', error.message);
-        return res.status(401).send('Erreur lors de la connexion');
+        return res.status(500).send('Erreur lors de la connexion');
     }
 });
 
@@ -80,94 +74,62 @@ app.post('/users/login', async (req, res) => {
  * ROUTES DE L'API POUR RECUPERER LE NOM DE L'UTILISATEUR
  */
 app.get('/users/getName/:user', async (req, res) => {
-    const {user} = req.params; // Récupérer les données de la requête
-    logger.debug("Enter on getName : " + user)
-    const refUtilisateurs = database.ref('utilisateurs'); // Référence à l'emplacement de la base de données
-    const snapshot = await refUtilisateurs.once('value'); // Récupérer les données de la base de données
-    const utilisateurs = snapshot.val(); // Récupérer les utilisateurs
+    const { user } = req.params; // Récupérer les données de la requête
 
-    if (utilisateurs) { // Vérifier que les utilisateurs existent
-        if (utilisateurs[user]) { // Vérifier que l'utilisateur existe
-            return res.status(200).json({nom: utilisateurs[user].nom});
-        } else {
-            return res.status(400).json({message: "User not found"})
+    try {
+        const existingUser = await User.findByPk(user); // Trouver l'utilisateur par ID
+        if (!existingUser) {
+            return res.status(400).json({ message: "User not found" });
         }
-    } else {
-        console.log("Aucun utilisateur trouvé."); // Afficher un message dans la console
-        return res.status(404).json({message: "Error server"}) // Retourner une erreur
+        return res.status(200).json({ nom: existingUser.name }); // Retourner le nom de l'utilisateur
+    } catch (error) {
+        logger.error('Erreur Serveur lors de la récupération du nom:', error.message);
+        return res.status(500).send('Erreur Serveur lors de la récupération du nom');
     }
 });
-
 
 /**
  * ROUTES DE L'API POUR RECUPERER LES DONNEES DE L'UTILISATEUR
  */
 app.get('/users/getData/:user', async (req, res) => {
-    const {user} = req.params; // Récupérer les données de la requête
-    logger.debug("Enter on getData : " + user)
-    if (!user) { // Vérifier que les données sont bien présentes
-        logger.error("Utilisateur manquant.");
-        return res.status(400).send('Missing user');
-    }
+    const { user } = req.params; // Récupérer les données de la requête
 
-    const refUtilisateurs = database.ref('utilisateurs'); // Référence à l'emplacement de la base de données
-    const snapshot = await refUtilisateurs.once('value'); // Récupérer les données de la base de données
-    const utilisateurs = snapshot.val(); // Récupérer les utilisateurs
     try {
-        if (utilisateurs) { // on verifie que les utilisateurs existent
-            const utilisateur = utilisateurs[user]; // Récupérer l'utilisateur
-            if (Array.isArray(utilisateur.data)) {
-                (utilisateur.data).sort((a, b) => { // Trier les données par date
-                    let da = new Date(a.date),
-                        db = new Date(b.date);
-                    return da - db;
-                });
-                return res.status(200).json({data: utilisateur.data}); // Retourner les données de l'utilisateur
-            } else {
-                logger.warn("Aucune donnée trouvée pour cet utilisateur.");
-                return res.status(404).send('No data found for this user');
-            }
-        } else {
-            logger.error("Aucun utilisateur trouvé.");
-            return res.status(404).send('User not found');
+        const healthData = await HealthData.findAll({ where: { userId: user }, order: [['date', 'ASC']] }); // Trouver les données de santé par ID utilisateur
+        if (!healthData.length) {
+            return res.status(404).send('No data found for this user');
         }
+        return res.status(200).json({ data: healthData }); // Retourner les données de santé
     } catch (error) {
         logger.error('Erreur Serveur lors de la récupération des données:', error.message);
         return res.status(500).send('Erreur Serveur lors de la récupération des données');
     }
-
 });
-
 
 /**
  * ROUTES DE L'API POUR AJOUTER DES DONNEES EN BASE DE DONNEES
  */
 app.put('/users/sendHealthData', async (req, res) => {
-    const {userID, poids, taille, date} = req.body; // Récupérer les données de la requête
+    const { userID, poids, taille, date } = req.body; // Récupérer les données de la requête
 
-    if (!userID || !poids || !taille || !date) { // Vérifier que les données sont bien
-        logger.error("userID, poid, taille, ou IMC manquant.");
-        return res.status(400).send('Missing userID, poid, taille, or IMC');
+    if (!userID || !poids || !taille || !date) { // Vérifier que les données sont bien présentes
+        logger.error("userID, poids, taille, ou date manquant.");
+        return res.status(400).send('Missing userID, poids, taille, or date');
     }
 
-    const utilisateursRef = database.ref(`utilisateurs/${userID}`); // Référence à l'emplacement de l'utilisateur dans la base de données
-    const snapshot = await utilisateursRef.get(); // Récupérer les données de l'utilisateur
+    try {
+        const existingUser = await User.findByPk(userID); // Trouver l'utilisateur par ID
+        if (!existingUser) {
+            return res.status(404).send('Utilisateur non trouvé');
+        }
 
-    if (snapshot.exists()) { // Vérifier que l'utilisateur existe
-        const data = snapshot.val().data || []; // Récupérer les données de l'utilisateur
         const imc = calculerIMC(poids, taille); // Calculer l'IMC
-        data.push({ // Ajouter les données de santé
-            date: date,
-            poids: poids,
-            taille: taille,
-            imc: imc
-        });
-        await utilisateursRef.update({data}); // Mettre à jour les données de l'utilisateur
+        const newHealthData = await HealthData.create({ userId: userID, poids, taille, date, imc }); // Créer de nouvelles données de santé
         logger.info(`Données de santé pour l'utilisateur ${userID} ajoutées avec succès.`);
-        return res.status(201).json({message: "Données de santé ajoutées avec succès", value: imc});
-    } else {
-        logger.error(`Utilisateur ${userID} non trouvé.`);
-        return res.status(404).send('Utilisateur non trouvé');
+        return res.status(201).json({ message: "Données de santé ajoutées avec succès", value: imc }); // Retourner une réponse au client
+    } catch (error) {
+        logger.error('Erreur Serveur lors de l\'ajout des données de santé:', error.message);
+        return res.status(500).send('Erreur Serveur lors de l\'ajout des données de santé');
     }
 });
 
@@ -178,7 +140,7 @@ app.put('/users/sendHealthData', async (req, res) => {
  * @returns {number} IMC
  */
 function calculerIMC(poids, taille) {
-    taille = taille / 100 // Conversion de la taille en m
+    taille = taille / 100; // Conversion de la taille en m
     return poids / (taille * taille);
 }
 
