@@ -1,61 +1,71 @@
 /**
  * IMPORTS
  */
-import {DataTypes} from 'sequelize';
-import sequelize from './dbConfig.js';
-import {logger} from "./logger.mjs";
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+import { logger } from './logger.mjs';
 
-const User = sequelize.define('User', {
-    id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true
-    },
-    email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
-    },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false
+dotenv.config(); // Charger les variables d'environnement
+
+/**
+ * Fonction pour se connecter à la base de données avec une logique de retry
+ */
+const connectWithRetry = async (retries = 5, delay = 2000) => {
+    while (retries > 0) {
+        try {
+            const db = await mysql.createConnection({
+                host: process.env.DB_HOST || '192.168.49.2', // Remplace par l'IP retournée par `minikube ip`
+                port: process.env.DB_PORT || 30006,
+                user: process.env.MYSQL_USER || 'root',
+                password: process.env.MYSQL_PASSWORD || 'password',
+                database: process.env.MYSQL_DATABASE || 'mydb'
+            });
+
+            await db.connect();
+            logger.info('Connecté à la base de données MySQL');
+            return db;
+        } catch (err) {
+            logger.error(`Erreur de connexion à la base de données: ${err.message}`);
+            retries -= 1;
+            if (retries === 0) throw err;
+            logger.info(`Nouvelle tentative dans ${delay / 1000} secondes...`);
+            await new Promise(res => setTimeout(res, delay));
+        }
     }
-});
+};
 
-const HealthData = sequelize.define('HealthData', {
-    id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true
-    },
-    userId: {
-        type: DataTypes.UUID,
-        allowNull: false
-    },
-    poids: {
-        type: DataTypes.FLOAT,
-        allowNull: false
-    },
-    taille: {
-        type: DataTypes.FLOAT,
-        allowNull: false
-    },
-    date: {
-        type: DataTypes.DATE,
-        allowNull: false
-    },
-    imc: {
-        type: DataTypes.FLOAT,
-        allowNull: false
-    }
-});
+/**
+ * Fonction pour créer les tables si elles n'existent pas
+ */
+const createTables = async (db) => {
+    const createUserTable = `
+        CREATE TABLE IF NOT EXISTS User (
+            id CHAR(36) PRIMARY KEY,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            name VARCHAR(255) NOT NULL
+        );
+    `;
 
-sequelize.sync().then(r =>
-    logger.debug('Tables synchronisées')
-);
+    const createHealthDataTable = `
+        CREATE TABLE IF NOT EXISTS HealthData (
+            id CHAR(36) PRIMARY KEY,
+            userId CHAR(36) NOT NULL,
+            poids FLOAT NOT NULL,
+            taille FLOAT NOT NULL,
+            date DATE NOT NULL,
+            imc FLOAT NOT NULL,
+            FOREIGN KEY (userId) REFERENCES User(id)
+        );
+    `;
 
-export {User, HealthData};
+    await db.execute(createUserTable);
+    await db.execute(createHealthDataTable);
+
+    logger.info('Tables créées avec succès');
+};
+
+const db = await connectWithRetry();
+await createTables(db);
+
+export default db;
