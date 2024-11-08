@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: backend-deployment
 spec:
   replicas: 2
   selector:
@@ -16,4 +16,15 @@ spec:
         - name: backend
           image: kiurow590/back:v1.0
           ports:
-            - containerPort: 5000  # Par exemple, si c'est une API Node.js
+            - containerPort: 3000
+          env:
+            - name: DB_HOST
+              value: "mysql-service" # Nom du service MySQL
+            - name: DB_PORT
+              value: "3306"
+            - name: MYSQL_USER
+              value: "root"
+            - name: MYSQL_PASSWORD
+              value: "password"
+            - name: MYSQL_DATABASE
+              value: "mydb"
