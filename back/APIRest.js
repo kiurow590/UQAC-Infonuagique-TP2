@@ -18,7 +18,7 @@ const corsOptions = {
     credentials: true // Allow credentials
 };
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 /**
  * APPLICATION

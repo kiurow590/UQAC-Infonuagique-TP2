@@ -14,11 +14,11 @@ const connectWithRetry = async (retries = 5, delay = 2000) => {
     while (retries > 0) {
         try {
             const db = await mysql.createConnection({
-                host: process.env.DB_HOST || '192.168.49.2', // Remplace par l'IP retournée par `minikube ip`
-                port: process.env.DB_PORT || 30006,
-                user: process.env.MYSQL_USER || 'root',
-                password: process.env.MYSQL_PASSWORD || 'password',
-                database: process.env.MYSQL_DATABASE || 'mydb'
+                host: process.env.DB_HOST, // Remplace par l'IP retournée par `minikube ip`
+                port: process.env.DB_PORT,
+                user: process.env.MYSQL_USER,
+                password: process.env.MYSQL_PASSWORD,
+                database: process.env.MYSQL_DATABASE
             });
 
             await db.connect();
@@ -64,6 +64,8 @@ const createTables = async (db) => {
 
     logger.info('Tables créées avec succès');
 };
+
+dotenv.config(); // Charger les variables d'environnement. Retirez le .example du fichier .env.example
 
 const db = await connectWithRetry();
 await createTables(db);
