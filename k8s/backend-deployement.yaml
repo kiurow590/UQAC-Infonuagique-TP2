@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: backend-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -28,3 +28,5 @@ spec:
               value: "password"
             - name: MYSQL_DATABASE
               value: "mydb"
+            - name: PORT
+              value: "3000"
