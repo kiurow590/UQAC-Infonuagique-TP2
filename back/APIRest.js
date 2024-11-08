@@ -24,7 +24,7 @@ const port = process.env.PORT;
  * APPLICATION
  */
 
-app.use(cors(corsOptions)); // Configurer CORS avec les options spécifiées
+app.use(cors(/*corsOptions*/)); // Configurer CORS avec les options spécifiées
 app.use(express.json()); // Middleware to parse JSON requests
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -50,12 +50,13 @@ app.post('/users/signup', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10); // Hacher le mot de passe
+        const userID = uuidv4();
         const [result] = await db.execute(
             'INSERT INTO User (id, email, password, name) VALUES (?, ?, ?, ?)',
-            [uuidv4(), email, hashedPassword, name]
+            [userID, email, hashedPassword, name]
         );
         logger.debug('Utilisateur inscrit:', result);
-        return res.status(200).json({ message: "Sign Up success", value: result.insertId }); // Retourner une réponse au client
+        return res.status(200).json({ message: "Sign Up success", value: result.insertId, uiid:userID }); // Retourner une réponse au client
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             logger.error('Cet email est déjà utilisé:', error.message);
@@ -123,7 +124,7 @@ app.get('/users/getData/:userId', async (req, res) => {
     try {
         const [rows] = await db.execute('SELECT * FROM HealthData WHERE userId = ? ORDER BY date ASC', [userId]);
         if (!rows.length) {
-            return res.status(404).send('No data found for this user');
+            return res.status(200).send('No data found for this user');
         }
         return res.status(200).json({ data: rows }); // Retourner les données de santé
     } catch (error) {

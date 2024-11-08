@@ -51,13 +51,13 @@ export default {
     methods: {
         async login() {
             try {
-                const response = await fetch('http://localhost:3000/users/login', {
+                const response = await fetch(`${process.env.VUE_APP_API_URL}/users/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        user: this.email,
+                        email: this.email,
                         password: this.password
                     })
                 });
@@ -72,18 +72,18 @@ export default {
                 this.$router.push({ path: '/welcome', query: { uid: data.value } });
             } catch (error) {
                 this.loginError = error.message;
-                console.error(this.loginError);
+                console.error(error);
             }
         },
         async signup() {
             try {
-                const response = await fetch('http://localhost:3000/users/signup', {
+                const response = await fetch(`${process.env.VUE_APP_API_URL}/users/signup`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        user: this.emailSignup,
+                        email: this.emailSignup,
                         password: this.passwordSignup,
                         name: this.name
                     })
@@ -99,8 +99,8 @@ export default {
                 console.log(data);
                 this.$router.push({ path: '/welcome', query: { uid: data.value } });
             } catch (error) {
-                alert(`Erreur : mot de passe trop court`);
-                console.error(error.message);
+                //alert(`Erreur : mot de passe trop court`);
+                console.error(error);
             }
         }
     }

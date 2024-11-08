@@ -124,13 +124,13 @@ export default {
       const d = formatDateToISO(this.date)
 
       try {
-        const response = await fetch('http://localhost:3000/users/sendHealthData', {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/users/sendHealthData`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            userID: this.uid,
+            userId: this.uid,
             poids: this.poids,
             taille: this.taille,
             date: d
@@ -150,7 +150,7 @@ export default {
       }
 
       try {
-        const response = await fetch('http://localhost:3000/users/getData/' + this.uid, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/users/getData/${this.uid}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -209,7 +209,7 @@ export default {
 
   async mounted() {
 
-    fetch(`http://localhost:3000/users/getName/` + this.uid,) // Remplace par ton endpoint API réel
+    fetch(`${process.env.VUE_APP_API_URL}/users/getName/${this.uid}`) // Remplace par ton endpoint API réel
       .then(response => {
         if (!response.ok) {
           throw new Error("Erreur lors de la récupération des données");
@@ -217,7 +217,8 @@ export default {
         return response.json();  // Pour une chaîne de caractères
       })
       .then(data => {
-        this.userName = data.nom;  // Stocker les données dans l'état
+        this.userName = data.name;  // Stocker les données dans l'état
+        console.log(data.name);
         this.loading = false;  // Fin du chargement
       })
       .catch(error => {
@@ -226,7 +227,7 @@ export default {
       });
 
 
-    fetch(`http://localhost:3000/users/getData/` + this.uid,) // Remplace par ton endpoint API réel
+    fetch(`${process.env.VUE_APP_API_URL}/users/getData/${this.uid}`) // Remplace par ton endpoint API réel
       .then(response => {
         if (!response.ok) {
           throw new Error("Erreur lors de la récupération des données");
