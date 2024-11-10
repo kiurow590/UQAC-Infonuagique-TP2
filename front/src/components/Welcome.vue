@@ -49,29 +49,47 @@
 </template>
 
 <script>
-import { Chart, registerables } from 'chart.js';
+import {Chart, registerables} from 'chart.js';
+
 Chart.register(...registerables);
 
 
 
 function formatDateToISO(dateStr) {
+  // // Vérifie que la date est au format jj/mm/aaaa
+  // const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  // const match = dateStr.match(regex);
+  //
+  // if (!match) {
+  //     throw new Error('Format de date invalide. Utilisez jj/mm/aaaa.');
+  // }
+  //
+  // const day = match[1];
+  // const month = match[2];
+  // const year = match[3];
+  //
+  // // Crée un objet Date avec les valeurs correspondantes (mois de 0 à 11)
+  // const date = new Date(Date.UTC(year, month - 1, day));
+  //
+  // // Retourne la date au format ISO
+  // return date.toISOString();
+
     // Vérifie que la date est au format jj/mm/aaaa
     const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
     const match = dateStr.match(regex);
 
     if (!match) {
-        throw new Error('Format de date invalide. Utilisez jj/mm/aaaa.');
+      throw new Error('Format de date invalide. Utilisez jj/mm/aaaa.');
     }
 
     const day = match[1];
     const month = match[2];
     const year = match[3];
 
-    // Crée un objet Date avec les valeurs correspondantes (mois de 0 à 11)
-    const date = new Date(Date.UTC(year, month - 1, day));
+  // Retourne la date au format MySQL
+  return `${year}-${month}-${day}`;
 
-    // Retourne la date au format ISO
-    return date.toISOString();
+
 }
 
 export default {
@@ -94,7 +112,7 @@ export default {
   },
   methods: {
     redirectToLink() {
-      window.location.href = 'http://localhost:8080/';
+      this.$router.push({ path: '/' });
     },
     validateDate(date) {
       const regex = /^\d{2}\/\d{2}\/\d{4}$/;
@@ -122,6 +140,7 @@ export default {
       }
 
       const d = formatDateToISO(this.date)
+      console.log(d);
 
       try {
         const response = await fetch(`${process.env.VUE_APP_API_URL}/users/sendHealthData`, {

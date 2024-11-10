@@ -56,7 +56,7 @@ app.post('/users/signup', async (req, res) => {
             [userID, email, hashedPassword, name]
         );
         logger.debug('Utilisateur inscrit:', result);
-        return res.status(200).json({ message: "Sign Up success", value: result.insertId, uiid:userID }); // Retourner une réponse au client
+        return res.status(200).json({ message: "Sign Up success", value: userID}); // Retourner une réponse au client
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             logger.error('Cet email est déjà utilisé:', error.message);
@@ -67,7 +67,6 @@ app.post('/users/signup', async (req, res) => {
         }
     }
 });
-
 /**
  * ROUTES DE L'API POUR SE CONNECTER
  */

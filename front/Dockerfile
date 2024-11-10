@@ -13,7 +13,8 @@ RUN npm run build
 # 3. Utilise une image nginx pour servir les fichiers statiques
 FROM nginx:stable-alpine AS production-stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
-
+# Copy the Nginx configuration file
+COPY nginx.conf /etc/nginx/nginx.conf
 # Expose le port 80 pour le serveur nginx
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

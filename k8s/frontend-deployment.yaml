@@ -1,19 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
+  name: frontend-vue-app
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: frontend
+      app: frontend-vue-app
   template:
     metadata:
       labels:
-        app: frontend
+        app: frontend-vue-app
     spec:
       containers:
-        - name: frontend
+        - name: frontend-vue-app
           image: kiurow590/front:v1.0
           ports:
             - containerPort: 80
+          env:
+            - name: VUE_APP_API_URL
+              value: "http://192.168.49.2:30001"
