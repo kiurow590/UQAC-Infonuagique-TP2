@@ -99,9 +99,3 @@ Choix de conception d'une API rest avec le back qui communique avec la base de d
 ## Améliorations possibles
 
 - La prise en charge de la modification et la suppression de certaines entrée.
-
-
-## Issues rencontrées
-
-- Si vous utilisez Firefox, il est possible que vous rencontriez des problèmes de CORS. Pour les résoudre, vous pouvez installer l'extension CORS Everywhere et l'activer. Vous pouvez également utiliser un autre navigateur comme Chrome ou Edge.
-- Nous recommandonc aussi l'utilisation d'un outil pour autoriser les requêtes CORS, comme l'extension Allow CORS pour Chrome.
