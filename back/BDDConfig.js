@@ -65,7 +65,7 @@ const createTables = async (db) => {
     logger.info('Tables créées avec succès');
 };
 
-dotenv.config(); // Charger les variables d'environnement. Retirez le .example du fichier .env.example
+dotenv.config(); // Charger les variables d'environnement. Retirez le .example du fichier .env.example.example
 
 const db = await connectWithRetry();
 await createTables(db);
