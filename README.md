@@ -1,63 +1,49 @@
-# Exercice 1 Tp1
+# Exercice 1 Tp2
 
-## Objectif
+## Objectif de l'Exercice
 
-L'objectif de cette exercice est de développer une application cloud, en JavaScript, capable de calculer l'Indice de Masse Corporelle (IMC) d'une personne à partir de son nom, son poids et sa taille. L'application peut être exécutée localement ou sur des plateformes comme Google Colab ou Jupyter. Les données collectées (nom, poids, taille et IMC) seront ensuite stockées dans une base de données en temps réel, telle que Firebase, pour permettre le suivi des informations. L'application permettra également de récupérer ces données depuis Firebase.
+L'objectif de cet exercice est de développer une application cloud en **JavaScript** qui calcule l'**Indice de Masse Corporelle (IMC)** d'une personne. Le calcul de l'IMC sera effectué à partir des informations suivantes :
+- Nom de la personne
+- Poids (en kilogrammes)
+- Taille (en mètres)
+
+### Architecture de l'Application
+
+L'application est structurée en trois niveaux :
+1. **Backend** : Traitement des requêtes et calcul de l'IMC.
+2. **Frontend** : Interface utilisateur pour saisir les informations et afficher le résultat.
+3. **Base de Données** : Stockage des informations utilisateur (nom, poids, taille, IMC calculé).
+
+### Déploiement
+
+Chacun de ces composants est déployé dans un environnement **Minikube** en utilisant **Kubernetes** pour la gestion des conteneurs et l'orchestration des services.
 
 
 ## Prérequis
 
+Avant de commencer, assurez-vous que les outils suivants sont installés sur votre environnement de développement :
 
-- Node.js et npm version recente
-- Un compte Firebase avec les clés d'accès (non incluses dans le dépôt pour des raisons de sécurité)
+- **Node.js** : Utilisez une version récente pour assurer la compatibilité avec les dernières fonctionnalités de JavaScript.
+- **npm** : Gestionnaire de paquets pour Node.js, nécessaire pour installer les dépendances de l'application.
+- **Kubernetes** : Plateforme de gestion de conteneurs pour orchestrer et déployer les services de l'application.
+- **Minikube** : Environnement Kubernetes local, permettant de simuler un cluster Kubernetes sur une machine de développement.
+
+Assurez-vous que toutes les installations sont configurées et que Minikube est en cours d'exécution avant de déployer les composants de l'application.
+
 
 ## Installation
 
-Le projet se compose de deux sous parties : le front et le back. 
-
-
-### Back
-
-Pour installer le back, il faut se déplacer dans le dossier back et installer les dépendances avec la commande suivante :
+L'installation de l'ensemble des composant se fait de la façon suivante : 
 
 ```bash
-$ cd ./Exercice 1/back
-$ npm install
+kubectl apply -f k8s/
 ```
 
-Ensuite, il faut accéder à l'interface de Firebase et que vous demandiez les accès pour avoir l'autorisation de lire et écrire dans la base de données. Une fois que vous avez les accès, vous pouvez placer le fichier .json que Firebase vous a donné dans le dossier back. Ensuite, vous devez indiquer le fichier dans le fichier BDDConfig.js. 
-
-```javascript
-//...
-import serviceAccount from './imc-infonuagique-firebase-adminsdk-j3xx0-f05bc01d2d.json' assert {type: 'json'};
-//...
-```
-
-Enfin, vous pouvez lancer le back avec la commande suivante :
+## Commande pour accéder au front 
 
 ```bash
-$ npm start  # pour lancer le serveur en mode normal
-$ npm run dev # pour lancer le serveur en mode développement avec les logs
+minikube service frontend-vue-app --url
 ```
-
-### Front
-Ce déplacer das le dossier client et installer les dépendances avec la commande suivante :
-
-```bash
-$ cd ./Exercice 1/front
-$ npm install
-```
-
-Comme nous utilisons un framework Vue.js, il faut lancer le front avec la commande suivante :
-
-```bash
-$ npm run serve
-```
-
-Vous accéderez à l'application sur l'adresse suivante : http://localhost:8080/
-
-
-
 
 ## Choix dans la conception et contrainte
 
@@ -65,8 +51,8 @@ Vu que nous étions un trinome, nous avons décidé de rajouter des fonctionnali
 
 
 <figure>
-    <img src="./ArchitectureSERVEURCLIENT.png" alt="Exercice1/ArchitectureSERVEURCLIENT.png" />
-    <figcaption>Architecture Client Server</figcaption>
+    <img src="./Architecture.png" alt="./Architecture.png" />
+    <figcaption>Architecture Minikube</figcaption>
 </figure>
 
 ### FrontEnd Client
@@ -74,14 +60,14 @@ Vu que nous étions un trinome, nous avons décidé de rajouter des fonctionnali
 Le client dispose de deux pages : une page d'accueil et une page de connexion. La page d'accueil permet à l'utilisateur de s'inscrire ou de se connecter. 
 
 <figure>
-    <img src="./front/img/logginPage.png" alt="Exercice1/front/img/logginPage.png" />
+    <img src="./front/img/logginPage.png" alt="./front/img/logginPage.png" />
     <figcaption>Page de connexion</figcaption>
 </figure>
 
 Une fois connecté, l'utilisateur peut accéder à la page principale de l'application, où il peut saisir son poids et sa taille et une date pour calculer son IMC. 
 
 <figure>
-    <img src="./front/img/mainPage.png" alt="Exercice1/front/img/mainPage.png" />
+    <img src="./front/img/mainPage.png" alt="./front/img/mainPage.png" />
     <figcaption>Page avec le formulaire apres inscription</figcaption>
 </figure>
 
@@ -89,14 +75,14 @@ Une fois connecté, l'utilisateur peut accéder à la page principale de l'appli
 L'utilisateur peut également consulter son IMC précédent et les données de santé stockées dans la base de données. L'utilisateur peut également se déconnecter de l'application.
 
 <figure>
-    <img src="./front/img/FinalDataExample.png" alt="Exercice1/front/img/FinalDataExample.png" />
+    <img src="./front/img/FinalDataExample.png" alt="./front/img/FinalDataExample.png" />
     <figcaption>Page avec le formulaire apres quelque valeurs de renseignées</figcaption>
 </figure>
 
 
 ### API Rest
 
-Choix de conception d'une API rest avec le front qui communique avec la base de données en temps réel de Firebase.
+Choix de conception d'une API rest avec le back qui communique avec la base de données MySQL.
 
 #### Détais de l'API
 
@@ -112,7 +98,7 @@ Choix de conception d'une API rest avec le front qui communique avec la base de 
 
 ## Améliorations possibles
 
-- Déployer l'application sur une plateforme comme Firebase Hosting pour la rendre accessible à tous et l'exécuter en ligne.
+- La prise en charge de la modification et la suppression de certaines entrée.
 
 
 ## Issues rencontrées
