@@ -94,15 +94,14 @@ Choix de conception d'une API rest avec le back qui communique avec la base de d
 
 #### Détais de l'API
 
-| Requête                  | Type de requête | Paramètres d'entrée                                                                 | Retour                                                                                   |
-|--------------------------|-----------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| `/users/signup`          | POST            | `user` (string), `password` (string), `name` (string)                                | `200 OK` avec `message` et `user ID` ou `409 Conflict` si l'email est déjà utilisé        |
-| `/users/login`           | POST            | `user` (string), `password` (string)                                                 | `200 OK` avec `message` et `user ID` ou `401 Unauthorized` en cas d'erreur de connexion   |
-| `/users/getName/:user`   | GET             | `user` (string) dans l'URL                                                           | `200 OK` avec `nom` de l'utilisateur ou `400 Bad Request` si l'utilisateur n'est pas trouvé|
-| `/users/getData/:user`   | GET             | `user` (string) dans l'URL                                                           | `200 OK` avec `data` de l'utilisateur ou `404 Not Found` si l'utilisateur n'est pas trouvé|
-| `/users/sendHealthData`  | PUT             | `userID` (string), `poids` (number), `taille` (number), `date` (string)              | `201 Created` avec `message` et `IMC` ou `404 Not Found` si l'utilisateur n'est pas trouvé|
 
-
+| Requête                  | Type de requête | Paramètres d'entrée                                                                 | Description                                                                                   |
+|--------------------------|-----------------|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| `/users/signup`          | POST            | `email` (string), `password` (string), `name` (string)                               | Enregistre un nouvel utilisateur. Retourne `200 OK` avec `message` et `user ID` ou `409 Conflict` si l'email est déjà utilisé. |
+| `/users/login`           | POST            | `email` (string), `password` (string)                                                | Authentifie un utilisateur. Retourne `200 OK` avec `message` et `user ID` ou `401 Unauthorized` si l'authentification échoue. |
+| `/users/getName/:userId` | GET             | `userId` (string) dans l'URL                                                         | Récupère le nom de l'utilisateur. Retourne `200 OK` avec `name` ou `400 Bad Request` si l'utilisateur n'est pas trouvé. |
+| `/users/getData/:userId` | GET             | `userId` (string) dans l'URL                                                         | Récupère les données de santé de l'utilisateur. Retourne `200 OK` avec `data` ou `404 Not Found` si aucune donnée n'est trouvée. |
+| `/users/sendHealthData`  | PUT             | `userId` (string), `poids` (number), `taille` (number), `date` (string)              | Ajoute des données de santé pour l'utilisateur. Retourne `201 Created` avec `message` et `IMC` ou `404 Not Found` si l'utilisateur n'est pas trouvé. |
 
 ## Améliorations possibles
 
