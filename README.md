@@ -39,6 +39,14 @@ L'installation de l'ensemble des composant se fait de la façon suivante :
 kubectl apply -f k8s/
 ```
 
+![Deploiement des pods](./CommandExec.gif)
+
+
+<figure>
+    <img src="./Capture%20d’écran%20du%202024-11-15%2022-47-42.png" alt="./Capture%20d’écran%20du%202024-11-15%2022-47-42.png" />
+    <figcaption>Dashboard de l'ensemble des composants déployé</figcaption>
+</figure>
+
 ## Commande pour accéder au front 
 
 ```bash
