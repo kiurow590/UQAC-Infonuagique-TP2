@@ -1,3 +1,10 @@
+# TP2 - Conception et architecture des systèmes d'infonuagique (8INF876)
+
+## Équipe
+- Sofiane EL NAGGAR
+- Matéo HANY
+- Aubry TONNERRE
+___
 # Exercice 1 Tp2
 
 ## Objectif de l'Exercice
